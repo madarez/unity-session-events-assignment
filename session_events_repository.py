@@ -70,4 +70,11 @@ class SessionEventsRepository():
             LIMIT 20;
             """,
             (uuid.UUID(player_id),'end'))
+        # TODO: We may want to query the same rows from start events to make
+        # sure the events correspond to begin events as well. Alternatively,
+        # we may redisign table, say to normalize the pair of start and end
+        # events in the same row, to order the results by the timestamps, or
+        # again work out at application level. However, this might come for
+        # free from the downstream. Therefore, I just assume the start events
+        # are guaranteed to exist for end events.
         return [str(row.session_id) for row in rows]
