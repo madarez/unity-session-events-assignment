@@ -16,7 +16,7 @@ class SessionEventsService():
         else:
             raise TypeError('A list is required for the batch of events')
 
-    def fetch_recent_completed_sessions(self, params: List[Dict[str,str]]):
+    def fetch_recent_completed_sessions(self, params: Dict[str,str]):
         player_id = params.get('player_id')
         if isinstance(player_id, str):
             return self.repository.fetch_recent_completed_sessions(player_id)
