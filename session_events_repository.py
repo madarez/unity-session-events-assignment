@@ -7,8 +7,19 @@ from cassandra import ConsistencyLevel
 
 
 class SessionEventsRepository():
+    """
+    class to interact with SessionEvents database
+    """
 
     def __init__(self):
+        """
+        Sets up the cassandra cluster, session, keyspace, table, and a reusable
+        batch statement
+        in order for the data older than 1 year old to be discarded, we set a
+        default ttl of 365*24*60*60 or 31536000 seconds.
+        There are multiple configurations including the default ttl that may
+        be set in a separate configuration file.
+        """
         # connect to cluster
         cluster = Cluster()
         self.session = cluster.connect()
@@ -19,6 +30,7 @@ class SessionEventsRepository():
                 'replication_factor' : 1
             };
             """)
+        # TODO: POC if separating start and end event would be more efficient
         self.session.execute("""
             CREATE TABLE IF NOT EXISTS unity_assignment.session_events (
                 event TEXT,
@@ -38,7 +50,11 @@ class SessionEventsRepository():
             """)
 
     @staticmethod
-    def _typecast(event):
+    def _typecast(event: Dict):
+        """
+        casts type of passed events to be stored into Session Events table
+        :param event: event whose fields' types are going to be cast
+        """
         if isinstance(event, dict):
             return (
                 event.get('event'),
@@ -52,6 +68,20 @@ class SessionEventsRepository():
                              'passed event to be typecast')
 
     def insert_events_batch(self, events: List[Dict[str,str]]):
+        """
+        inserts events batch into the SessionEvents database
+        :param events: list of dictionary of events such as:
+        [{
+            "event": "start",
+            "country": "FI",
+            "player_id": "0a2d12a1a7e145de8bae44c0c6e06629", "session_id": "4a0c43c9-c43a-42ff-ba55-67563dfa35d4", "ts": "2016-12-02T12:48:05.520022"
+        },
+        {
+            "event": "end",
+            "player_id": "0a2d12a1a7e145de8bae44c0c6e06629", "session_id": "4a0c43c9-c43a-42ff-ba55-67563dfa35d4", "ts": "2016-12-02T12:49:05.520022"
+        }]
+        :return: http body message
+        """
         for event in events:
             self.batch.add(
                 self.insert_event,
@@ -62,7 +92,13 @@ class SessionEventsRepository():
         finally:
             self.batch.clear()
 
-    def fetch_recent_completed_sessions(self, player_id: str):
+    def fetch_recent_completed_sessions(self, player_id: str) -> List[str]:
+        """
+        fetches up to 20 recent completed sessions associated with a player
+        :param player_id: the player id of the player whose recent sessions
+        we'd want to query
+        :returns: list of recent sessions sorted from latest to the earliest
+        """
         rows = self.session.execute("""
             SELECT session_id
             FROM unity_assignment.session_events

@@ -3,16 +3,29 @@ from typing import List, Dict
 from session_events_service import SessionEventsService
 
 class RouterService():
+    """
+    class with main handler routing api requests and prepares http response
+    """
 
+    # general response header
     headers = {
             'Content-Type': 'application/json; charset=utf-8',
             'Access-Control-Allow-Origin': '*'
         }
 
     def __init__(self):
+        """
+        initializes RouterService
+        """
         self.session_events_service = SessionEventsService()
 
     def handle(self, request: Dict) -> Dict:
+        """
+        handles the http requests and responds with appropriate status code
+        :param request: request dictionary including path, httpMethod, body,
+        and queryStringParameters
+        :return: http response
+        """
         path: str = request['path']
         method: str = request['httpMethod']
         try:
@@ -21,6 +34,8 @@ class RouterService():
             elif method == 'POST':
                 params = json.loads(request['body'])
             else:
+                # if a wrong method is passed, we need to return the allowed
+                # methods in the header's Allow as follows
                 headers = self.headers.copy()
                 headers['Allow']='GET, POST'
                 return {
