@@ -35,7 +35,7 @@ class RouterService():
                 result = self.session_events_service.insert_events_batch(params)
             # fetch last 20 complete sessions for a given player
             elif path == '/v1/recent':
-                result = self.session_events_service.fetch_recent_completed_events(params)
+                result = self.session_events_service.fetch_recent_completed_sessions(params)
             else:
                 return {
                         'statusCode': 404,

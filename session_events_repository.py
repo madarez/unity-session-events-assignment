@@ -62,7 +62,7 @@ class SessionEventsRepository():
         finally:
             self.batch.clear()
 
-    def fetch_recent_completed_events(self, player_id: str):
+    def fetch_recent_completed_sessions(self, player_id: str):
         rows = self.session.execute("""
             SELECT session_id
             FROM unity_assignment.session_events
